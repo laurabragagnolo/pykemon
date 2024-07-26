@@ -26,8 +26,8 @@ class Character:
         self.moves = c_moves
         self.c_hp = baseStats.hp
       
-    def useMove(self, name_move, opponent_pokemon):
-        move = self.moves[name_move]
+    def useMove(self, idx_move, opponent_pokemon):
+        move = self.moves[idx_move]
         if random.random() < move.getAccuracy():
             stability = 1
             if move.getType() in self.type:
@@ -40,6 +40,7 @@ class Character:
             modifier = stability * effect * critical * luck
             damage = math.floor(((2*self.level + 10)/250) * (self.baseStats.getAttack()/opponent_pokemon.baseStats.getDefense()) * move.getPower() + 2)*modifier
             opponent_pokemon.hitted(damage)
+            print(self.name + ' used ' + move.getName())
         else:
             print(self.name + ' tried to use ' + move.getName() + ' but he missed the target')
             
@@ -59,6 +60,10 @@ class Character:
     
     def restoreC_HP(self):
         self.c_hp = self.baseStats.getHP()
+        
+    def restorePP(self):
+        for i in range(0, len(self.moves)):
+            self.moves[i].setPP(self.moves[i].getMaxPP())
     
     def restoreMovesPP(self):
         for i in range(0, len(self.moves)):
@@ -66,6 +71,9 @@ class Character:
     
     def addC_HP(self, add_hp):
         self.c_hp = self.c_hp + add_hp
+        
+    def setC_HP(self, value):
+        self.c_hp = value
     
     def hitted(self, damage):
         self.c_hp -= damage

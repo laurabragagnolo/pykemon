@@ -7,7 +7,9 @@ from Bag import Bag
 from Items import Potion, Pokeball
 from PokemonCenter import PokemonCenter
 from PokemonStore import PokemonStore
-
+from Battle import Battle
+import copy
+from Story import Story
 
 def main():
     # Ask to the user to create his pokemon trainer
@@ -31,7 +33,7 @@ def main():
     
     # add the pokemon to the trainer
     starter = Pokedex.pokedex[choice]
-    trainer.addPokemon(starter)
+    trainer.addPokemon(copy.deepcopy(starter))
     
     # add potions and pokeballs
     for i in range(0, 10):
@@ -40,7 +42,10 @@ def main():
     
     print(trainer.toString())
     
-    # 
+    # start the story
+    story = Story(trainer)
+    story.askWhatDo()
+    
     
     
 main()

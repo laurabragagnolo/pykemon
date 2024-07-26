@@ -33,5 +33,5 @@ class Move:
         self.pp = pp
         
     def toString(self):
-        return "          Name: " + self.name + " Type: " + self.type + " Category: " + self.category + " Power: " + str(self.power) + " Accuracy: " + str(self.accuracy) + " PP: " + str(self.pp)
+        return "          Name: " + self.name + " Type: " + self.type + " Category: " + self.category + " Power: " + str(self.power) + " Accuracy: " + str(self.accuracy) + " PP: " + str(self.pp) + "/" + str(self.max_pp)
     

@@ -2,27 +2,53 @@ from Character import Character
 from Items import Potion, Pokeball
 import random
 
-RESULTS = {1 : "Attacker wins", 2 : "Defender wins", 3 : "Trainer run away", 4 : "Wild pokemon caught", 5 : "Battle continues"}
+RESULTS = {1 : "Attacker wins", 2 : "Defender wins", 3 : "Trainer run away", 4 : "Wild pokemon caught", 5 : "Battle continues", 6 : "Go back"}
 
 class Battle:
     def __init__(self, trainer, wild_pokemon):
         self.trainer = trainer
         self.wild_pokemon = wild_pokemon
-        self.active_pokemon = trainer.getSquad()[0]
+        pokemons = trainer.getSquad().getPokemons()
+        for pokemon in pokemons:
+            if pokemon.getC_HP() > 0:
+                self.active_pokemon = pokemon
+                break
         
     def runBattle(self):
         # start with the choice of the trainer
         res = RESULTS[5]
-        while res == RESULTS[5]:
-            res_trainer = self.turn()
-            if res_trainer == RESULTS[2]: # TODO case with no pokemon left
-                print("Choose another pokemon to continue the battle")
+        while res == RESULTS[5] or res == RESULTS[6]:
+            if res == RESULTS[5]:
+                print(self.active_pokemon.getName() + " HP: " + str(self.active_pokemon.getC_HP()))
+                print(self.wild_pokemon.getName() + " HP: " + str(self.wild_pokemon.getC_HP()))
+            
+            res = self.turn()
+            if res == RESULTS[2]: # pokemon active is dead
+                pokemonFromSquad = self.trainer.getSquad().getPokemons()
+                available_pokemon = []
+                map_to_squad = []
+                for i,opt in enumerate(pokemonFromSquad):
+                    if opt.getC_HP() > 0:
+                        available_pokemon.append(opt)
+                        map_to_squad.append(i)
                 
-            
-            
-            
-        # the motion of the trainer if is to attack depends on the velocity of the pokemon otherwise to it first
-        # check the different stages
+                if(len(available_pokemon) == 0):
+                    print("You have no more pokemon left")
+                    return RESULTS[2]
+                else:
+                    print("Choose another pokemon to continue the battle")
+                    for i, opt in enumerate(available_pokemon):
+                        print(str(i) + ": " + opt.getName())
+                    choice = int(input("Pokemon choice: "))
+                    self.active_pokemon = self.trainer.getSquad().getPokemons()[map_to_squad[choice]]
+                    res = RESULTS[5]
+            elif res == RESULTS[4]: # pokemon caught
+                print("You caught the wild pokemon")
+                return RESULTS[4]
+            elif res == RESULTS[1]:
+                print("You defeated the wild pokemon")
+                return RESULTS[1]
+                
     
     def turn(self):
         print("What would you like to do?")
@@ -31,35 +57,40 @@ class Battle:
         while True:
             if action == 1:
                 res = self.fight()
-                break
+                return res
             elif action == 2:
                 res = self.changePokemon()
-                idx_wild_move = self.getIdxWildPokemonMove()
-                self.wild_pokemon.useMove(self.wild_pokemon.getMoves()[idx_wild_move].getName(), self.active_pokemon)
-                if self.active_pokemon.getC_HP() > 0:
-                    res = RESULTS[2]
-            elif action == 3:
+                if res == RESULTS[5]:
+                    idx_wild_move = self.getIdxWildPokemonMove()
+                    self.wild_pokemon.useMove(idx_wild_move, self.active_pokemon)
+                    if self.active_pokemon.getC_HP() <= 0:
+                        self.active_pokemon.setC_HP(0)
+                        res = RESULTS[2]
+                return res
+            elif action == 3: 
                 res = self.useItem()
-                idx_wild_move = self.getIdxWildPokemonMove()
-                self.wild_pokemon.useMove(self.wild_pokemon.getMoves()[idx_wild_move].getName(), self.active_pokemon)
-                if self.active_pokemon.getC_HP() > 0:
-                    res = RESULTS[2]
-                break
+                if res == RESULTS[5]:
+                    idx_wild_move = self.getIdxWildPokemonMove()
+                    self.wild_pokemon.useMove(idx_wild_move, self.active_pokemon)
+                    if self.active_pokemon.getC_HP() <= 0:
+                        self.active_pokemon.setC_HP(0)
+                        res = RESULTS[2]
+                return res
             elif action == 4:
                 res = self.escape()
                 if res == RESULTS[5]:
-                    self.wild_pokemon.useMove(self.wild_pokemon.getMoves()[idx_wild_move].getName(), self.active_pokemon)
-                    if self.active_pokemon.getC_HP() > 0:
+                    idx_wild_move = self.getIdxWildPokemonMove()
+                    self.wild_pokemon.useMove(idx_wild_move, self.active_pokemon)
+                    if self.active_pokemon.getC_HP() <= 0:
                         res = RESULTS[2]
-                break
+                return res
             else:
                 print("Invalid action")
                 action = int(input("Action selected: "))
-        return res
   
     def fight(self):
         # ask to the user which move he wants to use
-        print("Available moves:")
+        print(self.active_pokemon.getName() + " can uses:")
         # take the move with enough PP
         all_moves = self.active_pokemon.getMoves()
         available_moves = []
@@ -70,9 +101,12 @@ class Battle:
                 map_to_moves.append(i)
                 
         for i, opt in enumerate(available_moves):
-            print(str(i) + ": " + opt.getName())
+            print(str(i) + ": " + opt.getName() + " PP: " + str(opt.getPP()) + "/" + str(opt.getMaxPP()))
+        print(str(i+1) + ": go back")
             
         choice = int(input("Move choice: "))
+        if choice == i+1:
+            return RESULTS[6]
         idx_attacker_move = map_to_moves[choice]
         
         # same for wild pokemon
@@ -80,17 +114,24 @@ class Battle:
         
         # check the velocity of the pokemon
         if self.active_pokemon.getBaseStats().getSpeed() > self.wild_pokemon.getBaseStats().getSpeed():
-            self.active_pokemon.useMove(self.active_pokemon.getMoves()[idx_attacker_move].getName(), self.wild_pokemon)
+            self.active_pokemon.useMove(idx_attacker_move, self.wild_pokemon)
             if self.wild_pokemon.getC_HP() > 0:
-                self.wild_pokemon.useMove(self.wild_pokemon.getMoves()[idx_wild_move].getName(), self.active_pokemon)
+                self.wild_pokemon.useMove(idx_wild_move, self.active_pokemon)
             else:
                 return RESULTS[1]
         else:
-            self.wild_pokemon.useMove(self.wild_pokemon.getMoves()[idx_wild_move].getName(), self.active_pokemon)
+            self.wild_pokemon.useMove(idx_wild_move, self.active_pokemon)
             if self.active_pokemon.getC_HP() > 0:
-                self.active_pokemon.useMove(self.active_pokemon.getMoves()[idx_attacker_move].getName(), self.wild_pokemon)
+                self.active_pokemon.useMove(idx_attacker_move, self.wild_pokemon)
             else:
+                self.active_pokemon.setC_HP(0)
                 return RESULTS[2]
+            
+        if self.active_pokemon.getC_HP() <= 0:
+            self.active_pokemon.setC_HP(0)
+            return RESULTS[2]
+        elif self.wild_pokemon.getC_HP() <= 0:
+            return RESULTS[1]
             
         return RESULTS[5]
     
@@ -110,7 +151,8 @@ class Battle:
     
     def escape(self):
         random_number = random.random()
-        if random_number < 0.6:
+        if random_number < 0.6: 
+            print("You run away")
             return RESULTS[3]
         else:
             print("You cannot run away")
@@ -118,16 +160,47 @@ class Battle:
         
     def useItem(self):
         print("What item would you like to use?")
-        for i, opt in enumerate(self.trainer.bag.getItems()):
+        bag = self.trainer.getBag()
+        items = bag.getItems()
+        for i, opt in enumerate(items):
             print(str(i) + ": " + opt.getName())
+        print(str(i+1) + ": go back")
             
         choice = int(input("Item choice: "))
-        item = self.trainer.bag.getItems()[choice]
+        if choice == i+1:
+            return RESULTS[6]
+        item = list(items.keys())[choice]
         
         if item.getName() == "Potion": #TODO generalize to who
-            item.use(self.active_pokemon)
+            pokemons = self.trainer.getSquad().getPokemons()
+            print("Available pokemon for the usage of the " + item.getName() + ":")
+            available_pokemon = []
+            map_to_squad = []
+            for i in range(0, len(pokemons)):
+                pokemon = pokemons[i]
+                if pokemon.getC_HP() < pokemon.getBaseStats().getHP() and pokemon.getC_HP() > 0:
+                    available_pokemon.append(pokemon)
+                    map_to_squad.append(i)
+            
+            i = 0        
+            for i, opt in enumerate(available_pokemon):
+                print(str(i) + ": " + opt.getName())
+            print(str(i+1) + ": go back")
+                
+            choice = int(input("Pokemon choice: "))
+            if choice == i+1:
+                return RESULTS[6]
+            
+            choosen_pokemon = pokemons[map_to_squad[choice]]
+            
+            used_potion = item.use(choosen_pokemon)
+            if used_potion:
+                bag.removeItem(item)
+            else:
+                return RESULTS[6]
         elif item.getName() == "Poké Ball":
             res = item.use(self.wild_pokemon)
+            bag.removeItem(item)
             if res:
                 return RESULTS[4]
             
@@ -135,7 +208,7 @@ class Battle:
     
     def changePokemon(self):
         print("Available pokemon:")
-        pokemonFromSquad = self.trainer.getSquad()
+        pokemonFromSquad = self.trainer.getSquad().getPokemons()
         available_pokemon = []
         map_to_squad = []
         
@@ -148,10 +221,13 @@ class Battle:
         
         for i, opt in enumerate(available_pokemon):
             print(str(i) + ": " + opt.getName())
+        print(str(i+1) + ": go back")
             
         choice = int(input("Pokemon choice: "))
+        if choice == i+1:
+            return RESULTS[6]
         
-        self.active_pokemon = self.trainer.getSquad()[map_to_squad[choice]]
+        self.active_pokemon = self.trainer.getSquad().getPokemons()[map_to_squad[choice]]
         
         return RESULTS[5]
             

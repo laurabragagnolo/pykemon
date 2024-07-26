@@ -8,7 +8,6 @@ class PokemonCenter:
         for i in range(0, len(pokemons)):
             pokemons[i].restoreC_HP()
             pokemons[i].restorePP()
-
         
     def toString(self):
         string = ""

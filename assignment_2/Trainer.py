@@ -13,10 +13,13 @@ class Trainer:
         self.bag = Bag()
         
     def addPokemon(self, pokemon):
-        self.squad.addCharacter(pokemon)
+        return self.squad.addCharacter(pokemon)
         
     def getSquad(self):
         return self.squad
+    
+    def getBag(self):
+        return self.bag
                     
     def toString(self):
         string = "Name: " + self.name
