@@ -24,7 +24,7 @@ class Character:
                     c_moves.append(moves[i])    
                     
         self.moves = c_moves
-        self.c_hp = baseStats.hp
+        self.c_hp = self.baseStats.getHP()
       
     def useMove(self, idx_move, opponent_pokemon):
         move = self.moves[idx_move]
