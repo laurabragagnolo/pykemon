@@ -31,21 +31,24 @@ class Battle:
         
         if res == RESULTS[1]:
             result_fight = "starter_win"
+            result = 1
             self.wild_pokemon.setC_HP(0.0)
         else:
             result_fight = "starter_lose"
+            result = 0
             self.trainer_pokemon.setC_HP(0.0)
 
-        data = dict()
+        data = {
+            "wild_pokemon": self.wild_pokemon.getName(),
+            "number_turns": count,
+            "starter_final_hp": self.trainer_pokemon.getC_HP(),
+            "wild_final_hp": self.wild_pokemon.getC_HP(),
+            "current_hps": self.current_hps,
+            "selected_attacks": self.selected_attacks,
+            "damage_done": self.damage_done,
+            "fight_result": result
+        }
 
-        data["fight_result"] = result_fight
-        data["n_turns"] = count
-        data["starter_final_hp"] = self.trainer_pokemon.getC_HP()
-        data["wild_final_hp"] = self.wild_pokemon.getC_HP()
-        data["current_hps"] = self.current_hps
-        data["selected_attacks"] = self.selected_attacks
-        data["damage_done"] = self.damage_done
-   
         return data
             
     def fight(self):

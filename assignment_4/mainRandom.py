@@ -71,8 +71,9 @@ def main():
     starter.setLevel(random.randint(1, 20))
     print("Starter: ", starter.getName())
     print("Level: ", starter.getLevel())
-    n_games = 10
-    n_battle = 150
+
+    n_games = int(input("How many games do you want to play? "))
+    n_battle = int(input("How many battles do you want to fight in each game? ")) 
 
     all_to_save = []
     for i in tqdm.tqdm(range(0, n_games)):
@@ -86,10 +87,10 @@ def main():
         to_save = story.automaticExploration(n_battle)
         all_to_save.append(to_save)
 
-    df = pd.DataFrame(all_to_save)
-            
+
+    df = pd.concat(all_to_save)
     c_dir = os.getcwd()
     save_file = c_dir + "/pokemon_" + starter.getName() + ".csv"
-    df.to_csv(save_file, index=False)
+    df.to_csv(save_file, mode='a', index=False)
     
 main()
