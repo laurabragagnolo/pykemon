@@ -65,8 +65,8 @@ def main():
     input_name = 'Laura'
     trainer = Trainer(input_name)
 
-    n_games = 100
-    n_battle = 10
+    n_games = int(input("How many games do you want to play? "))
+    n_battle = int(input("How many battles do you want to fight? "))
 
     all_to_save = []
     for i in tqdm.tqdm(range(0, n_games)):
@@ -84,10 +84,10 @@ def main():
         to_save = story.automaticExploration(n_battle)
         all_to_save.append(to_save)
 
-    dataset = pd.concat(all_to_save, ignore_index=True)
+        dataset = pd.concat(all_to_save, ignore_index=True)
             
-    c_dir = os.getcwd()
-    save_file = c_dir + "/dataset.csv"
-    dataset.to_csv(save_file, index=False)
+        c_dir = os.getcwd()
+        save_file = c_dir + "/dataset.csv"
+        dataset.to_csv(save_file, mode='a', index=False, header=False)
     
 main()

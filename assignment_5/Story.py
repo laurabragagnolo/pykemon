@@ -18,13 +18,11 @@ class Story():
     def automaticExploration(self, n):
         df_to_save = []
         for i in range(0, n+1):
-            c_to_save = dict()
             opponent_id = random.choice(list(self.pokedex['Pokemon Number']))
             opponent = copy.deepcopy(self.pokedex.loc[self.pokedex['Pokemon Number'] == opponent_id]['Pokemon'].values[0])
             opponent.setLevel(random.randint(1, 20))
 
             chooseRandomMoves(opponent, self.MN)
-            print(len(self.trainer.getSquad().getPokemons()))   
             battle = Battle(self.trainer.getSquad().getPokemons()[0], opponent, self.type_effectiveness)
             battle_df = battle.runBattle() 
             df_to_save.append(battle_df)

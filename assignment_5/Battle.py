@@ -19,11 +19,6 @@ class Battle:
         self.trainer_pokemon = trainer_pokemon    
         self.wild_pokemon = wild_pokemon
         self.result = 0
-
-        print(len(self.trainer_pokemon))
-        self.current_hps = []   
-        self.selected_attacks = []
-        self.damage_done = []
         
         
     def runBattle(self):
@@ -31,12 +26,9 @@ class Battle:
         res = RESULTS[5]
         count = 0
         while res == RESULTS[5] or res == RESULTS[6]:
-            # if res == RESULTS[5]:
-            #     print(self.trainer_pokemon.getName() + " HP: " + str(self.trainer_pokemon.getC_HP()))
-            #     print(self.wild_pokemon.getName() + " HP: " + str(self.wild_pokemon.getC_HP()))
             
             # always fight
-            res = self.fight()
+            res = self.automaticFight()
             count = count + 1
         
         if res == RESULTS[1]:
@@ -76,6 +68,36 @@ class Battle:
         
         return df
    
+    def automaticFight(self):
+        
+        pokemon = self.trainer_pokemon
+        [idx_move_t, move_type_t] = self.getIdxPokemonMove(pokemon)
+        [idx_move_w, move_type_w] = self.getIdxPokemonMove(self.wild_pokemon)
+
+        effect_t = computeEffectiveness(move_type_t, self.wild_pokemon.getType(), self.type_effectiveness)
+        effect_w = computeEffectiveness(move_type_w, pokemon.getType(), self.type_effectiveness)
+        
+        # check the velocity of the pokemon
+        if pokemon.getActStats().getSpeed() > self.wild_pokemon.getActStats().getSpeed():
+            damage = pokemon.useMove(idx_move_t, self.wild_pokemon, effect_t, False)
+            if self.wild_pokemon.getC_HP() > 0:
+                self.wild_pokemon.useMove(idx_move_w, pokemon, effect_w, False)
+            else:
+                return RESULTS[1]
+        else:
+            self.wild_pokemon.useMove(idx_move_w, pokemon, effect_w, False)
+            if pokemon.getC_HP() > 0:
+                damage = pokemon.useMove(idx_move_t, self.wild_pokemon, effect_t, False)
+            else:
+                return RESULTS[2]
+            
+        if pokemon.getC_HP() <= 0:
+            return RESULTS[2]
+        elif self.wild_pokemon.getC_HP() <= 0:
+            return RESULTS[1]
+            
+        return RESULTS[5]
+
             
     def fight(self, pokemon=None):
         # take the random move for both pokemon
@@ -103,30 +125,22 @@ class Battle:
         idx_move_t = map_to_moves[choice]
         move_type_t = all_moves[idx_move_t].getType()
 
-        self.current_hps.append(pokemon.getC_HP())
-        self.selected_attacks.append(move_type_t)
-
         effect_t = computeEffectiveness(move_type_t, self.wild_pokemon.getType(), self.type_effectiveness)
         effect_w = computeEffectiveness(move_type_w, pokemon.getType(), self.type_effectiveness)
         
         # check the velocity of the pokemon
         if pokemon.getActStats().getSpeed() > self.wild_pokemon.getActStats().getSpeed():
-            print("here")
             damage = pokemon.useMove(idx_move_t, self.wild_pokemon, effect_t, False)
-            print(damage)
             if self.wild_pokemon.getC_HP() > 0:
                 self.wild_pokemon.useMove(idx_move_w, pokemon, effect_w, False)
             else:
                 return RESULTS[1]
         else:
-            print("there")
             self.wild_pokemon.useMove(idx_move_w, pokemon, effect_w, False)
             if pokemon.getC_HP() > 0:
                 damage = pokemon.useMove(idx_move_t, self.wild_pokemon, effect_t, False)
             else:
                 return RESULTS[2]
-            
-        self.damage_done.append(damage)
             
         if pokemon.getC_HP() <= 0:
             return RESULTS[2]
