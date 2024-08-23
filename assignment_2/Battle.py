@@ -90,7 +90,7 @@ class Battle:
   
     def fight(self):
         # ask to the user which move he wants to use
-        print(self.active_pokemon.getName() + " can uses:")
+        print(self.active_pokemon.getName() + " can use:")
         # take the move with enough PP
         all_moves = self.active_pokemon.getMoves()
         available_moves = []
